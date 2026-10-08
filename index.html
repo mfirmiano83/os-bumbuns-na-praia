@@ -60,6 +60,7 @@
       fill.style.width = (p * 100).toFixed(0) + "%";
       status.textContent = p < 0.9 ? `Baixando a praia… ${(p * 100).toFixed(0)}%` : "Montando Pitangueiras…";
     }).then((instance) => {
+      window.unityInstance = instance;
       document.getElementById("overlay").style.display = "none";
       const fs = document.getElementById("fs");
       fs.style.display = "block";
