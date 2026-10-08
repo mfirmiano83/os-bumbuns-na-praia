@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes">
+<meta name="theme-color" content="#06121c">
+<title>Os Bumbuns na Praia</title>
+<style>
+  :root { --bg:#06121c; --fg:#f4efe6; --accent:#ffb02e; --muted:#9fb3c2; }
+  html, body { margin:0; height:100%; background:var(--bg); color:var(--fg); font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; overflow:hidden; }
+  #unity-canvas { position:fixed; inset:0; width:100vw; height:100vh; display:block; background:var(--bg); touch-action:none; }
+  #overlay { position:fixed; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:18px; padding:16px; text-align:center;
+             background: radial-gradient(120% 80% at 50% 110%, #0d3b4f 0%, var(--bg) 60%); }
+  h1 { margin:0; font-size:clamp(30px, 7vw, 72px); letter-spacing:.04em; color:var(--accent); }
+  p { margin:0; color:var(--muted); font-size:clamp(14px, 2.4vw, 20px); max-width:720px; }
+  #bar { width:min(520px, 80vw); height:10px; border-radius:6px; background:#17303f; overflow:hidden; }
+  #fill { height:100%; width:0%; background:linear-gradient(90deg, #ff8a1e, var(--accent)); transition:width .2s; }
+  #status { font-size:14px; color:var(--muted); min-height:20px; }
+  #fs { position:fixed; right:12px; bottom:12px; z-index:5; background:#0008; color:#fff; border:1px solid #fff4; border-radius:8px; padding:8px 12px; font-size:14px; display:none; }
+  #rotate { display:none; }
+  @media (orientation: portrait) and (pointer: coarse) { #rotate { display:block; } }
+</style>
+</head>
+<body>
+<canvas id="unity-canvas" tabindex="-1"></canvas>
+<div id="overlay">
+  <h1>OS BUMBUNS NA PRAIA</h1>
+  <p>Pitangueiras, Guarujá • surf, bugue e amigos online, direto do navegador.</p>
+  <div id="bar"><div id="fill"></div></div>
+  <div id="status">Preparando…</div>
+  <p id="rotate">Dica: gire o celular para a horizontal.</p>
+</div>
+<button id="fs">Tela cheia</button>
+<script>
+  const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent));
+  let folder = isMobile ? "BuildMobile" : "Build";
+  let name = isMobile ? "WebMobile" : "Web";
+  const status = document.getElementById("status"), fill = document.getElementById("fill");
+  status.textContent = (navigator.gpu ? "WebGPU disponível" : "WebGL 2") + (isMobile ? " • versão para celular" : " • versão para computador");
+  async function start() {
+  if (isMobile) {
+    try { const r = await fetch(`${folder}/${name}.loader.js`, { method: "HEAD" }); if (!r.ok) throw 0; }
+    catch { folder = "Build"; name = "Web"; }
+  }
+  const config = {
+    dataUrl: `${folder}/${name}.data.unityweb`,
+    frameworkUrl: `${folder}/${name}.framework.js.unityweb`,
+    codeUrl: `${folder}/${name}.wasm.unityweb`,
+    streamingAssetsUrl: "StreamingAssets",
+    companyName: "Bumbuns", productName: "Os Bumbuns na Praia", productVersion: "0.4",
+    devicePixelRatio: isMobile ? Math.min(window.devicePixelRatio, 1.5) : Math.min(window.devicePixelRatio, 2),
+  };
+  const script = document.createElement("script");
+  script.src = `${folder}/${name}.loader.js`;
+  script.onload = () => {
+    createUnityInstance(document.getElementById("unity-canvas"), config, (p) => {
+      fill.style.width = (p * 100).toFixed(0) + "%";
+      status.textContent = p < 0.9 ? `Baixando a praia… ${(p * 100).toFixed(0)}%` : "Montando Pitangueiras…";
+    }).then((instance) => {
+      document.getElementById("overlay").style.display = "none";
+      const fs = document.getElementById("fs");
+      fs.style.display = "block";
+      fs.onclick = () => instance.SetFullscreen(1);
+    }).catch((e) => { status.textContent = "Não foi possível abrir o jogo: " + e; });
+  };
+  script.onerror = () => { status.textContent = "Erro ao baixar o jogo. Recarregue a página."; };
+  document.body.appendChild(script);
+  }
+  start();
+</script>
+</body>
+</html>
