@@ -32,7 +32,10 @@
 </div>
 <button id="fs">Tela cheia</button>
 <script>
-  const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent));
+  const qs = new URLSearchParams(location.search);
+  // ?gl=1 forca WebGL 2 (esconde o WebGPU do navegador); ?m=1 forca a versao de celular
+  if (qs.get("gl") === "1") { try { Object.defineProperty(navigator, "gpu", { value: undefined, configurable: true }); } catch (e) {} }
+  const isMobile = qs.get("m") === "1" || /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent));
   let folder = isMobile ? "BuildMobile" : "Build";
   let name = isMobile ? "WebMobile" : "Web";
   const status = document.getElementById("status"), fill = document.getElementById("fill");
